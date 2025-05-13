@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environment
+.venv/
+
+# VS Code, PyCharm 등 에디터 설정
+.vscode/
+.idea/
+
+# Environment variables
+.env
