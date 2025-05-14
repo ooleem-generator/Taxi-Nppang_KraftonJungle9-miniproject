@@ -6,6 +6,7 @@ flask_session/
 
 # Virtual environment
 .venv/
+venv/
 
 # VS Code, PyCharm 등 에디터 설정
 .vscode/
@@ -13,4 +14,11 @@ flask_session/
 
 # Environment variables
 .env
-ssl/
+ssl
+
+# app 파일
+app.py
+run.py
+
+# MacOS
+.DS_Store

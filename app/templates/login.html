@@ -4,24 +4,19 @@
 {% block title %}로그인{% endblock %}
 
 {% block content %}
-<!-- login.html -->
-<div class="flex flex-col items-center justify-center h-screen bg-gray-100 px-4">
-
-  <!-- 브랜드 로고 영역 -->
-  <div class="text-5xl md:text-6xl font-extrabold text-blue-700 mb-10 tracking-wide text-center">
+<div class="flex flex-col items-center justify-center min-h-[60vh] py-12 px-4">
+  <!-- 브랜드 로고 -->
+  <h2 class="text-5xl md:text-6xl font-extrabold text-blue-700 mb-10 tracking-wide text-center">
     🚖 택시 N빵
-  </div>
+  </h2>
 
-  <!-- 로그인 박스 -->
+  <!-- 로그인 카드 -->
   <div class="w-full max-w-sm bg-white p-8 rounded shadow text-center">
-
     <a href="/auth/slack/login"
        class="inline-flex items-center justify-center w-full bg-blue-600 text-white py-3 px-4 rounded hover:bg-blue-700 transition mb-4">
-      <img src="https://cdn.worldvectorlogo.com/logos/slack-new-logo.svg"
-           alt="Slack logo" class="w-5 h-5 mr-2">
+      <img src="https://cdn.worldvectorlogo.com/logos/slack-new-logo.svg" alt="Slack logo" class="w-5 h-5 mr-2">
       Slack으로 로그인
     </a>
-
     <p class="text-gray-600">Slack 계정으로 로그인해 주세요.</p>
   </div>
 </div>

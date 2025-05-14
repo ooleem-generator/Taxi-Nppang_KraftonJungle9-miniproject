@@ -1,89 +1,141 @@
 {% extends 'base.html' %}
 
-{% block title %}모집글 상세 보기{% endblock %}
+{% block title %}모집글 상세{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
-  <!-- 출발지/도착지/시간/인원 -->
-  <div class="text-center mb-6">
-    <div class="text-xs text-gray-400 mb-1">등록일: {{ post.created_at }}</div>
 
-    <div class="flex justify-center items-center gap-6 mt-4 mb-2">
-      <!-- 출발지 -->
-      <div>
-        <div class="text-sm text-gray-500">출발지</div>
-        <div class="text-xl font-bold text-gray-800">{{ post.departure }}</div>
-        <div class="text-xs text-gray-500">{{ post.departure_detail }}</div>
-      </div>
-
-      <!-- 화살표 -->
-      <div class="text-gray-400 pt-6">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+    <!-- 상단 뒤로가기 + 등록일 -->
+    <div class="flex justify-between items-center text-xs text-gray-400 mb-4">
+    <!-- 뒤로가기 -->
+    <a href="/" class="text-sm text-blue-600 hover:underline flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
         </svg>
-      </div>
+        돌아가기
+    </a>
 
-      <!-- 도착지 -->
-      <div>
-        <div class="text-sm text-gray-500">도착지</div>
-        <div class="text-xl font-bold text-gray-800">{{ post.destination }}</div>
-        <div class="text-xs text-gray-500">{{ post.destination_detail }}</div>
-      </div>
+    <!-- 등록일 -->
+    <span>등록일: {{ formatted_created }}</span>
     </div>
 
-    <!-- 인원/출발 시간 -->
-    <div class="flex justify-center gap-4 text-m text-gray-600 mt-6">
-      <div>👥 {{ post.current_members }}/{{ post.total_members }}</div>
-      <div>출발 시간: {{ post.departure_time }}</div>
+    <!-- 출발지 / 도착지 -->
+    <div class="text-center mt-10 mb-6">
+        <div class="flex justify-center items-center gap-6">
+        <!-- 출발지 -->
+        <div>
+            <div class="text-sm text-gray-500">출발지</div>
+            <div class="text-xl font-bold text-gray-800">{{ post.departure }}</div>
+            <div class="text-xs text-gray-500">{{ post.departureDetail }}</div>
+        </div>
+
+        <!-- 화살표 -->
+        <div class="pt-6 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+        </div>
+
+        <!-- 도착지 -->
+        <div>
+            <div class="text-sm text-gray-500">도착지</div>
+            <div class="text-xl font-bold text-gray-800">{{ post.destination }}</div>
+            <div class="text-xs text-gray-500">{{ post.destinationDetail }}</div>
+        </div>
+        </div>
     </div>
-  </div>
 
-  <!-- 지도 이미지 -->
-  <div class="flex justify-center mb-6">
-    <div class="w-64 h-64 bg-gray-200 rounded overflow-hidden">
-      <img src="/static/images/route.png" alt="경로 이미지" class="object-cover w-full h-full" />
+    <div class="text-center mb-6">
+        <!-- 출발 시간 -->
+        <div class="text-m text-gray-700 font-bold mb-3">
+            🕓 {{ formatted_departure }}
+        </div>
+
+        <!-- 인원 수 -->
+        <div class="text-sm text-gray-700 mb-4">
+            👥 인원: {{ post.currentMembers }} / {{ post.totalMembers }}
+        </div>
     </div>
-  </div>
 
-  <!-- 설명 -->
-  <div class="mt-6">
-    <h4 class="font-semibold mb-2">설명</h4>
-    <div class="bg-gray-100 p-3 rounded text-sm text-gray-700 whitespace-pre-wrap">
-      {{ post.description }}
+    <!-- 참여자 리스트 (자리 고정) -->
+    <div class="flex flex-wrap justify-center gap-2 mb-6">
+        {% set filled = participations | length %}
+        {% set total = post.totalMembers %}
+
+        {% for i in range(total) %}
+            {% if i < filled %}
+                {% set participant = participations[i] %}
+                {% set is_host = participant.userId == post.authorId %}
+                {% set is_me = participant.userId == current_user_id %}
+
+                <div class="px-3 py-1 bg-gray-100 rounded border border-gray-300 flex items-center gap-1 min-w-[100px]">
+                    {% if is_host %}<span>👑</span>{% endif %}
+                    <span class="text-gray-800 font-semibold">
+                    {{ participant.userName }}
+                    {% if is_me %}<span class="text-blue-600">(나)</span>{% endif %}
+                    </span>
+                    {% if is_host %}
+                    <span class="text-xs text-gray-500 ml-1">(호스트)</span>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="px-3 py-1 bg-white text-gray-400 border border-dashed border-gray-300 rounded min-w-[100px] text-center">
+                    참여 가능
+                </div>
+            {% endif %}
+        {% endfor %}
     </div>
-  </div>
 
-  <!-- 댓글 입력 -->
-  <div class="mt-8">
-    <h4 class="font-semibold mb-2">댓글</h4>
-    <form action="/comment" method="POST" class="flex gap-2 mb-4">
-      <input type="hidden" name="post_id" value="{{ post.id }}">
-      <input type="text" name="comment" class="flex-1 border border-gray-300 p-2 rounded" placeholder="댓글을 입력하세요" required>
-      <button type="submit" class="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">등록</button>
-    </form>
+    <!-- 지도 이미지 영역 -->
+    <div class="flex justify-center mb-6">
+        <div class="w-64 h-64 bg-gray-200 rounded overflow-hidden">
+        <!-- <img src="/static/images/route.png" alt="경로 이미지" class="object-cover w-full h-full" /> -->
+        </div>
+    </div>
 
-    <!-- 댓글 리스트 -->
+    <!-- 설명 -->
+    <div class="mt-6">
+        <h4 class="font-semibold mb-2">설명</h4>
+        <div class="bg-gray-100 p-3 rounded text-sm text-gray-700 whitespace-pre-wrap">
+        {{ post.postContent }}
+        </div>
+    </div>
+
+    <!-- 댓글 작성 -->
+    <div class="mt-10">
+        <h4 class="font-semibold mb-2">댓글</h4>
+        <form action="/comment" method="POST" class="flex gap-2 mb-4">
+        <input type="hidden" name="post_id" value="{{ post._id }}">
+        <input type="text" name="comment" class="flex-1 border border-gray-300 p-2 rounded" placeholder="댓글을 입력하세요" required>
+        <button type="submit" class="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">등록</button>
+        </form>
+
+    <!-- 댓글 목록 -->
     <div class="space-y-2 text-sm">
       {% for comment in comments %}
         <div class="bg-gray-50 p-2 rounded border border-gray-200">
           <strong class="text-gray-800">{{ comment.author }}</strong>
-          <span class="text-gray-500 ml-2">{{ comment.created_at }}</span>
-          <p class="mt-1 text-gray-700">{{ comment.text }}</p>
+          <span class="text-gray-500 ml-2">{{ comment.createdAt.strftime('%Y-%m-%d %H:%M') }}</span>
+          <p class="mt-1 text-gray-700">{{ comment.commentContent }}</p>
         </div>
       {% endfor %}
     </div>
   </div>
 
-  <!-- 참여/취소 버튼 -->
-  <div class="flex justify-end gap-4 mt-8">
-    <form action="/join" method="POST">
-      <input type="hidden" name="post_id" value="{{ post.id }}">
-      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">참여하기</button>
-    </form>
-    <form action="/cancel" method="POST">
-      <input type="hidden" name="post_id" value="{{ post.id }}">
-      <button type="submit" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">취소</button>
-    </form>
-  </div>
+    <!-- 참여 / 취소 버튼 -->
+    <div class="flex justify-end gap-4 mt-10">
+        {% if is_participating %}
+        <form action="/cancel" method="POST">
+            <input type="hidden" name="post_id" value="{{ post._id }}">
+            <button type="submit" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">취소하기</button>
+        </form>
+        {% else %}
+        <form action="/join" method="POST">
+            <input type="hidden" name="post_id" value="{{ post._id }}">
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">참여하기</button>
+        </form>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>{% block title %}택시 N빵{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}택시 N빵{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-gray-900">
+<body class="bg-gray-100 text-gray-900 min-h-screen flex flex-col">
 
   <!-- 공통 헤더 -->
   <header class="bg-white shadow py-4 px-6">
@@ -15,18 +15,23 @@
         <a href="/">🚖 택시 N빵</a>
       </h1>
       <nav class="text-sm space-x-4">
-        <a href="/login" class="text-gray-700 hover:underline">로그인</a>
+        {% if session.get("user") %}
+            <span class="text-gray-600">{{ session.user.userName }}</span>
+            <a href="/logout" class="text-red-600 hover:underline">로그아웃</a>
+        {% else %}
+            <a href="/login" class="text-blue-700 hover:underline">로그인</a>
+        {% endif %}
       </nav>
     </div>
   </header>
 
   <!-- 메인 콘텐츠 -->
-  <main class="max-w-4xl mx-auto p-6">
+  <main class="flex-1 max-w-4xl mx-auto p-6 w-full">
     {% block content %}{% endblock %}
   </main>
 
   <!-- 푸터 -->
-  <footer class="text-center text-sm text-gray-400 mt-12">
+  <footer class="text-center text-sm text-gray-400 py-6">
     Copyright 2025. 택시 N빵 Inc. all rights reserved.
   </footer>
 

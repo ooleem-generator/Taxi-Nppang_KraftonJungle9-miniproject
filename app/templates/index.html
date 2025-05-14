@@ -18,40 +18,48 @@
   </div>
 
   <!-- 모집글 리스트 -->
-  {% if posts %}
+  {% if ride_posts %}
     <div class="space-y-4">
-      {% for post in posts %}
-        <a href="/post/{{ post.id }}" class="block hover:shadow-lg transition rounded">
-            <!-- 카드 UI (앞서 만든 카드 그대로 복붙) -->
+      {% for post in ride_posts %}
+        <a href="/post/{{ post._id }}" class="block hover:shadow-lg transition rounded">
             <div class="bg-white p-4 rounded shadow flex justify-between items-center">
                 <div class="flex-1 pr-4">
-                    <div class="text-xs text-gray-400 mb-1">등록일: {{ post.created_at }}</div>
+                    <div class="text-xs text-gray-400 mb-1">등록일: {{ post.formatted_created }}</div>
+                    <!-- 출발지/도착지 섹션 -->
                     <div class="flex items-start gap-6 mb-2">
-                    <div class="text-left">
+                        <!-- 출발지 -->
+                        <div class="text-left">
                         <div class="text-sm text-gray-500">출발지</div>
-                        <div class="font-semibold text-gray-800">{{ post.departure }}</div>
-                        <div class="text-xs text-gray-500">{{ post.departure_detail }}</div>
-                    </div>
-                    <div class="pt-6 text-gray-400">
+                        <div class="text-sm m:text-base md:text-lg font-semibold text-gray-800">{{ post.departure }}</div>
+                        <div class="text-xs text-gray-500">{{ post.departureDetail }}</div>
+                        </div>
+
+                        <!-- 화살표 -->
+                        <div class="pt-6 text-gray-400">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
-                    </div>
-                    <div class="text-left">
+                        </div>
+
+                        <!-- 도착지 -->
+                        <div class="text-left">
                         <div class="text-sm text-gray-500">도착지</div>
-                        <div class="font-semibold text-gray-800">{{ post.destination }}</div>
-                        <div class="text-xs text-gray-500">{{ post.destination_detail }}</div>
+                        <div class="text-sm m:text-base md:text-lg font-semibold text-gray-800">{{ post.destination }}</div>
+                        <div class="text-xs text-gray-500">{{ post.destinationDetail }}</div>
+                        </div>
                     </div>
-                    </div>
+                    <!-- 출발시간 & 인원 -->
                     <div class="flex items-center justify-between text-sm text-gray-600 mt-4">
                     <div class="flex gap-4">
-                        <div>👥 {{ post.current_members }}/{{ post.total_members }}</div>
-                        <div>출발 시간: {{ post.departure }}</div>
+                        <div>👥 {{ post.currentMembers }}/{{ post.totalMembers }}</div>
+                        <div>출발 시간: {{ post.formatted_departure }}</div>
                     </div>
                     </div>
                 </div>
-                <div class="w-24 h-24 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+
+                <!-- 지도 (모바일에서는 숨김) )-->
+                <div class="w-24 h-24 bg-gray-200 rounded overflow-hidden flex-shrink-0 hidden sm:block">
                     <img src="/static/images/route.png" alt="경로 이미지" class="object-cover w-full h-full" />
                 </div>
             </div>
@@ -63,100 +71,94 @@
   {% endif %}
 </div>
 
-<!-- 모집글 작성 모달 템플릿 -->
+<!-- 모집글 작성 모달 -->
 <div id="post-modal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center hidden">
   <div class="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
 
-    <!-- 상단 제목 및 닫기 -->
+    <!-- 모달 상단 -->
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-bold text-gray-800">새 모집글 작성</h2>
-      <button onclick="closePostModal()" class="text-gray-500 hover:text-gray-800">취소</button>
+      <h2 class="text-lg font-bold text-gray-800">📝 모집글 작성</h2>
+      <button onclick="closePostModal()" class="text-gray-500 hover:text-gray-800 text-sm">취소</button>
     </div>
 
+    <!-- 작성 폼 -->
     <form id="post-form" action="/submit" method="POST" class="space-y-4">
       <!-- 출발지 -->
       <div>
         <label class="block text-sm text-gray-600 mb-1">출발지</label>
         <button type="button" name="departure" onclick="openLocationModal('departure')" class="w-full bg-gray-100 p-2 rounded text-left">출발지를 선택하세요 ▼</button>
-        <input type="hidden" name="departure" id="departure-input">
+        <input type="hidden" name="departure" id="departure-input" />
       </div>
 
       <!-- 도착지 -->
       <div>
         <label class="block text-sm text-gray-600 mb-1">도착지</label>
         <button type="button" name="destination" onclick="openLocationModal('destination')" class="w-full bg-gray-100 p-2 rounded text-left">도착지를 선택하세요 ▼</button>
-        <input type="hidden" name="destination" id="destination-input">
+        <input type="hidden" name="destination" id="destination-input" />
       </div>
 
-      <!-- 시간 -->
+      <!-- 출발 시간 -->
       <div>
-        <label class="block text-sm text-gray-600 mb-1">시간</label>
-        <input type="time" class="w-full bg-gray-100 p-2 rounded" name="time" required />
+        <label class="block text-sm text-gray-600 mb-1">출발 시간</label>
+        <input type="datetime-local" name="departureTime" class="w-full bg-gray-100 p-2 rounded" required />
       </div>
 
       <!-- 인원 -->
       <div>
-        <label class="block text-sm text-gray-600 mb-1">인원</label>
+        <label class="block text-sm text-gray-600 mb-1">모집 인원</label>
         <div class="flex items-center gap-4">
           <button type="button" onclick="adjustCount(-1)" class="bg-gray-200 px-3 py-1 rounded">-</button>
           <span id="member-count">1명</span>
           <button type="button" onclick="adjustCount(1)" class="bg-gray-200 px-3 py-1 rounded">+</button>
         </div>
-        <input type="hidden" name="members" id="members-input" value="1">
+        <input type="hidden" name="totalMembers" id="members-input" value="1" />
       </div>
 
       <!-- 설명 -->
       <div>
         <label class="block text-sm text-gray-600 mb-1">설명</label>
-        <textarea rows="3" name="description" class="w-full bg-gray-100 p-2 rounded resize-none" placeholder="상세 위치나 설명을 입력하세요..."></textarea>
+        <textarea name="postContent" rows="3" class="w-full bg-gray-100 p-2 rounded resize-none" placeholder="상세 위치나 설명을 입력하세요..." required></textarea>
       </div>
 
       <!-- 작성 버튼 -->
       <div class="pt-4">
-        <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">작성</button>
+        <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">작성 완료</button>
       </div>
     </form>
+
   </div>
 </div>
 
 <!-- 출발지/도착지 선택용 미니 모달 -->
 <div id="location-modal" class="fixed inset-0 z-50 bg-black bg-opacity-30 flex justify-center items-center hidden">
   <div class="bg-white w-full max-w-xs rounded shadow p-4 space-y-2 relative">
-
     <h3 class="text-lg font-semibold mb-3">장소 선택</h3>
 
     <!-- 직접 설정: 강조 -->
     <button onclick="openDaumAddressSearch()"
             class="w-full text-left bg-blue-50 border border-blue-300 rounded px-3 py-2 hover:bg-blue-100 font-medium">
-      직접 설정
+      📝 직접 설정
     </button>
 
     <!-- 자주 가는 장소 -->
-    <button onclick="selectLocation('정글 캠퍼스')"
+    {% for place in ['정글 캠퍼스', '둔전역', '다이소 용인둔전점'] %}
+    <button onclick="selectLocation('{{ place }}')"
             class="w-full text-left bg-gray-100 rounded px-3 py-2 hover:bg-gray-200">
-      정글 캠퍼스
+      {{ place }}
     </button>
-    <button onclick="selectLocation('둔전역')"
-            class="w-full text-left bg-gray-100 rounded px-3 py-2 hover:bg-gray-200">
-      둔전역
-    </button>
-    <button onclick="selectLocation('다이소 용인둔전점')"
-            class="w-full text-left bg-gray-100 rounded px-3 py-2 hover:bg-gray-200">
-      다이소 용인둔전점
-    </button>
+    {% endfor %}
 
-    <!-- 하단 닫기 버튼 (선택) -->
+    <!-- 하단 닫기 버튼 -->
     <div class="flex justify-end pt-2">
-        <button onclick="closeLocationModal()" class="text-sm text-gray-500 hover:underline mt-2">닫기</button>
+      <button onclick="closeLocationModal()" class="text-sm text-gray-500 hover:underline mt-2">닫기</button>
     </div>
-   
   </div>
-</div>
 </div>
 
 <!-- 스크립트 -->
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
+  // 모달 열기/닫기
   function openPostModal() {
     document.getElementById('post-modal').classList.remove('hidden');
   }
@@ -165,16 +167,18 @@
     document.getElementById('post-modal').classList.add('hidden');
   }
 
-  let count = 1;
+  // 모집 인원 수 조절
+  let totalMembers = 1;
   function adjustCount(delta) {
-    count = Math.min(4, Math.max(1, count + delta));
-    document.getElementById('member-count').innerText = `${count}명`;
-    document.getElementById('members-input').value = count;
+    totalMembers = Math.min(4, Math.max(1, totalMembers + delta));
+    document.getElementById('member-count').innerText = `${totalMembers}명`;
+    document.getElementById('members-input').value = totalMembers;
   }
 
+  // 장소 선택용 미니 모달 제어
   let currentTarget = null;
   function openLocationModal(target) {
-    currentTarget = target;  // 'departure' or 'destination'
+    currentTarget = target; // 'departure' or 'destination'
     document.getElementById('location-modal').classList.remove('hidden');
   }
 
@@ -184,8 +188,11 @@
 
   function selectLocation(name) {
     const btn = document.querySelector(`button[name="${currentTarget}"]`);
-    btn.innerText = name;
-    document.getElementById(`${currentTarget}-input`).value = name;
+    const input = document.getElementById(`${currentTarget}-input`);
+    if (btn && input) {
+      btn.innerText = name;
+      input.value = name;
+    }
     closeLocationModal();
   }
 
@@ -197,5 +204,4 @@
     }).open();
   }
 </script>
-
 {% endblock %}
