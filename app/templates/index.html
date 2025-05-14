@@ -13,15 +13,22 @@
     </h2>
     <div class="flex gap-4 text-sm">
       <button class="text-gray-700 hover:underline">정렬</button>
+      {% if session.get("user") %}
+        <!-- 로그인한 경우: 글 작성 모달 열기 -->
       <button onclick="openPostModal()" class="text-gray-700 hover:underline">글 작성</button>
+      {% else %}
+        <!-- 로그인하지 않은 경우: 로그인 페이지로 이동 -->
+      <a href="{{ url_for('main.login') }}"><button class="text-gray-700 hover:underline">글 작성</button></a>
+      {% endif %}
+
     </div>
   </div>
 
-  <!-- 모집글 리스트 -->
+    <!-- 모집글 리스트 -->
   {% if ride_posts %}
     <div class="space-y-4">
       {% for post in ride_posts %}
-        <a href="/post/{{ post._id }}" class="block hover:shadow-lg transition rounded">
+        <a href="/posts/{{ post._id }}" class="block hover:shadow-lg transition rounded">
             <div class="bg-white p-4 rounded shadow flex justify-between items-center">
                 <div class="flex-1 pr-4">
                     <div class="text-xs text-gray-400 mb-1">등록일: {{ post.formatted_created }}</div>
@@ -60,7 +67,7 @@
 
                 <!-- 지도 (모바일에서는 숨김) )-->
                 <div class="w-24 h-24 bg-gray-200 rounded overflow-hidden flex-shrink-0 hidden sm:block">
-                    <img src="/static/images/route.png" alt="경로 이미지" class="object-cover w-full h-full" />
+                    <!-- <img src="/static/images/route.png" alt="경로 이미지" class="object-cover w-full h-full" /> -->
                 </div>
             </div>
         </a>
@@ -82,7 +89,7 @@
     </div>
 
     <!-- 작성 폼 -->
-    <form id="post-form" action="/submit" method="POST" class="space-y-4">
+    <form id="post-form" action="/posts" method="POST" class="space-y-4">
       <!-- 출발지 -->
       <div>
         <label class="block text-sm text-gray-600 mb-1">출발지</label>
@@ -203,5 +210,30 @@
       }
     }).open();
   }
+
+  document.getElementById('post-form').addEventListener('submit', function(e) {
+    const departure = document.getElementById('departure-input').value.trim();
+    const destination = document.getElementById('destination-input').value.trim();
+    const departureTime = this.departureTime.value;
+    const description = this.postContent.value.trim();
+
+  if (!departure || !destination) {
+    alert('출발지와 도착지를 모두 선택해주세요.');
+    e.preventDefault();
+    return;
+  }
+
+  if (!departureTime) {
+    alert('출발 시간을 선택해주세요.');
+    e.preventDefault();
+    return;
+  }
+
+  if (!description) {
+    alert('설명을 입력해주세요.');
+    e.preventDefault();
+    return;
+  }
+});
 </script>
 {% endblock %}

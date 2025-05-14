@@ -13,11 +13,14 @@
   <!-- 로그인 카드 -->
   <div class="w-full max-w-sm bg-white p-8 rounded shadow text-center">
     <a href="/auth/slack/login"
-       class="inline-flex items-center justify-center w-full bg-blue-600 text-white py-3 px-4 rounded hover:bg-blue-700 transition mb-4">
+        class="inline-flex items-center justify-center w-full bg-blue-600 text-white py-3 px-4 rounded hover:bg-blue-700 transition mb-4"
+        aria-label="Slack 계정으로 로그인하기">
+       
       <img src="https://cdn.worldvectorlogo.com/logos/slack-new-logo.svg" alt="Slack logo" class="w-5 h-5 mr-2">
       Slack으로 로그인
     </a>
     <p class="text-gray-600">Slack 계정으로 로그인해 주세요.</p>
+    <p class="text-sm text-gray-500 mt-2">로그인이 되지 않는다면 관리자에게 문의해 주세요.</p>
   </div>
 </div>
 {% endblock %}

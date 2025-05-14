@@ -105,37 +105,70 @@
     <!-- 댓글 작성 -->
     <div class="mt-10">
         <h4 class="font-semibold mb-2">댓글</h4>
-        <form action="/comment" method="POST" class="flex gap-2 mb-4">
-        <input type="hidden" name="post_id" value="{{ post._id }}">
-        <input type="text" name="comment" class="flex-1 border border-gray-300 p-2 rounded" placeholder="댓글을 입력하세요" required>
-        <button type="submit" class="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">등록</button>
-        </form>
 
-    <!-- 댓글 목록 -->
-    <div class="space-y-2 text-sm">
-      {% for comment in comments %}
-        <div class="bg-gray-50 p-2 rounded border border-gray-200">
-          <strong class="text-gray-800">{{ comment.author }}</strong>
-          <span class="text-gray-500 ml-2">{{ comment.createdAt.strftime('%Y-%m-%d %H:%M') }}</span>
-          <p class="mt-1 text-gray-700">{{ comment.commentContent }}</p>
+        {% if session.get("user") %}
+        <!-- 로그인한 사용자만 댓글 입력 가능 -->
+        <form action="/comments" method="POST" class="flex gap-2 mb-4">
+            <input type="hidden" name="post_id" value="{{ post._id }}">
+            <input type="text" name="comment" class="flex-1 border border-gray-300 p-2 rounded" placeholder="댓글을 입력하세요" required>
+            <button type="submit" class="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">등록</button>
+        </form>
+        {% else %}
+        <!-- 비로그인 사용자 안내 -->
+        <p class="text-red-500 text-sm mb-4">※ 댓글을 작성하려면 먼저 로그인해주세요.</p>
+        {% endif %}
+
+        <!-- 댓글 목록 -->
+        <div class="space-y-2 text-sm">
+            {% for comment in comments %}
+            <div class="bg-gray-50 p-2 rounded border border-gray-200">
+                <strong class="text-gray-800">{{ comment.authorName }}</strong>
+                <span class="text-gray-500 ml-2">{{ comment.createdAt.strftime('%Y-%m-%d %H:%M') }}</span>
+                <p class="mt-1 text-gray-700">{{ comment.commentContent }}</p>
+            </div>
+            {% endfor %}
         </div>
-      {% endfor %}
-    </div>
   </div>
 
     <!-- 참여 / 취소 버튼 -->
     <div class="flex justify-end gap-4 mt-10">
         {% if is_participating %}
-        <form action="/cancel" method="POST">
+        <!-- 취소: DELETE 요청을 JS로 처리 -->
+        <form id="cancel-form" action="/posts/{{ post._id }}/participate" method="POST"
+        onsubmit="return cancelParticipation(event)">
             <input type="hidden" name="post_id" value="{{ post._id }}">
             <button type="submit" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">취소하기</button>
         </form>
         {% else %}
-        <form action="/join" method="POST">
+        <!-- 참여: POST -->
+        <form action="/posts/{{ post._id }}/participate" method="POST">
             <input type="hidden" name="post_id" value="{{ post._id }}">
             <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">참여하기</button>
         </form>
         {% endif %}
     </div>
 </div>
+
+<script>
+    async function cancelParticipation(event) {
+        event.preventDefault();
+
+        const form = event.target.closest("form");
+        fetch(form.action, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams(new FormData(form))
+        }).then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                location.reload();
+            }
+        });
+
+        return false;
+    }
+</script>
 {% endblock %}

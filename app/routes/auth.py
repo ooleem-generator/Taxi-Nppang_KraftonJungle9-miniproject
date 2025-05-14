@@ -3,6 +3,7 @@ from flask import Blueprint, redirect, request, session, url_for
 import requests
 from app import mongo
 import os
+from datetime import datetime
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -16,7 +17,7 @@ def login():
     return redirect(
         f"https://taxinppang-jungle.slack.com/oauth/v2/authorize?client_id={SLACK_CLIENT_ID}"
         f"&user_scope=identity.basic,identity.email,identity.avatar,identity.team"
-        f"&redirect_uri=https://127.0.0.1:5001/auth/slack/callback"
+        f"&redirect_uri=https://taxinppang-kraftonjungle9.shop/auth/slack/callback"
     )
 
 
@@ -32,7 +33,7 @@ def callback():
             "client_id": SLACK_CLIENT_ID,
             "client_secret": SLACK_CLIENT_SECRET,
             "code": code,
-            "redirect_uri": "https://127.0.0.1:5001/auth/slack/callback",
+            "redirect_uri": "https://taxinppang-kraftonjungle9.shop/auth/slack/callback",
         },
     ).json()
 
@@ -45,7 +46,7 @@ def callback():
 
     # 🔽 사용자 이름을 Slack users.identity API로 요청
     user_info_res = requests.get(
-        "https://slack.com/api/users.identity",
+        "https://slack.com/api/users.email",
         headers={"Authorization": f"Bearer {access_token}"},
     ).json()
 
@@ -53,6 +54,7 @@ def callback():
         return "Failed to fetch user info", 400
 
     user_name = user_info_res["user"]["name"]
+    user_email = user_info_res["user"]["email"]
 
     # MongoDB에 사용자 정보 저장
     mongo.db.users.update_one(
@@ -60,8 +62,10 @@ def callback():
         {
             "$set": {
                 "access_token": access_token,
-                "team_id": token_res["team"]["id"],
-                "name": user_name,
+                "email": user_email,
+                "userName": user_name,
+                "createdAt": datetime.now(),
+                "deleted": "N",
             }
         },
         upsert=True,
