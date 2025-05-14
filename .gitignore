@@ -5,6 +5,7 @@ __pycache__/
 
 # Virtual environment
 .venv/
+venv/
 
 # VS Code, PyCharm 등 에디터 설정
 .vscode/
@@ -12,3 +13,11 @@ __pycache__/
 
 # Environment variables
 .env
+ssl
+
+# app 파일
+app.py
+run.py
+
+# MacOS
+.DS_Store
