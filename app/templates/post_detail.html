@@ -17,7 +17,7 @@
     </a>
 
     <!-- 등록일 -->
-    <span>등록일: {{ formatted_created }}</span>
+    <span>등록일: {{ post.created_at }}</span>
     </div>
 
     <!-- 출발지 / 도착지 -->
@@ -49,41 +49,35 @@
     <div class="text-center mb-6">
         <!-- 출발 시간 -->
         <div class="text-m text-gray-700 font-bold mb-3">
-            🕓 {{ formatted_departure }}
+            🕓 {{ post.departure_time }}
         </div>
 
         <!-- 인원 수 -->
         <div class="text-sm text-gray-700 mb-4">
             👥 인원: {{ post.currentMembers }} / {{ post.totalMembers }}
+            {% if post.currentMembers >= post.totalMembers %}
+                <span class="ml-2 text-red-500 font-semibold">[모집 마감]</span>
+            {% endif %}
         </div>
     </div>
 
     <!-- 참여자 리스트 (자리 고정) -->
     <div class="flex flex-wrap justify-center gap-2 mb-6">
-        {% set filled = participations | length %}
-        {% set total = post.totalMembers %}
+        {% for participant in participants %}
+            <div class="px-3 py-1 rounded border flex items-center gap-1 min-w-[100px]
+                        {% if participant.is_me %} bg-blue-100 border-blue-400 {% else %} bg-gray-100 border-gray-300 {% endif %}">
+                {% if participant.is_host %}
+                    <span class="text-yellow-500">👑</span>
+                {% endif %}
+                <span class="font-semibold text-gray-800">{{ participant.userName }}</span>
+            </div>
+        {% endfor %}
 
-        {% for i in range(total) %}
-            {% if i < filled %}
-                {% set participant = participations[i] %}
-                {% set is_host = participant.userId == post.authorId %}
-                {% set is_me = participant.userId == current_user_id %}
-
-                <div class="px-3 py-1 bg-gray-100 rounded border border-gray-300 flex items-center gap-1 min-w-[100px]">
-                    {% if is_host %}<span>👑</span>{% endif %}
-                    <span class="text-gray-800 font-semibold">
-                    {{ participant.userName }}
-                    {% if is_me %}<span class="text-blue-600">(나)</span>{% endif %}
-                    </span>
-                    {% if is_host %}
-                    <span class="text-xs text-gray-500 ml-1">(호스트)</span>
-                    {% endif %}
-                </div>
-            {% else %}
-                <div class="px-3 py-1 bg-white text-gray-400 border border-dashed border-gray-300 rounded min-w-[100px] text-center">
-                    참여 가능
-                </div>
-            {% endif %}
+        {% set remaining_slots = post.totalMembers - participants|length %}
+        {% for _ in range(remaining_slots) %}
+            <div class="px-3 py-1 bg-white text-gray-400 border border-dashed border-gray-300 rounded min-w-[100px] text-center">
+                참여 가능
+            </div>
         {% endfor %}
     </div>
 
@@ -122,8 +116,8 @@
         <div class="space-y-2 text-sm">
             {% for comment in comments %}
             <div class="bg-gray-50 p-2 rounded border border-gray-200">
-                <strong class="text-gray-800">{{ comment.authorName }}</strong>
-                <span class="text-gray-500 ml-2">{{ comment.createdAt.strftime('%Y-%m-%d %H:%M') }}</span>
+                <strong class="text-gray-800">{{ comment.author }}</strong>
+                <span class="text-gray-500 ml-2">{{ comment.createdAt }}</span>
                 <p class="mt-1 text-gray-700">{{ comment.commentContent }}</p>
             </div>
             {% endfor %}
@@ -132,43 +126,47 @@
 
     <!-- 참여 / 취소 버튼 -->
     <div class="flex justify-end gap-4 mt-10">
-        {% if is_participating %}
-        <!-- 취소: DELETE 요청을 JS로 처리 -->
-        <form id="cancel-form" action="/posts/{{ post._id }}/participate" method="POST"
-        onsubmit="return cancelParticipation(event)">
-            <input type="hidden" name="post_id" value="{{ post._id }}">
-            <button type="submit" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">취소하기</button>
-        </form>
-        {% else %}
-        <!-- 참여: POST -->
-        <form action="/posts/{{ post._id }}/participate" method="POST">
-            <input type="hidden" name="post_id" value="{{ post._id }}">
-            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">참여하기</button>
-        </form>
+        {% if not is_author %}
+            {% if is_participating %}
+            <!-- 참여 취소 버튼 -->
+            <form onsubmit="return cancelParticipation(event, '{{ post.id }}')">
+                <button type="submit" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
+                참여 취소
+                </button>
+            </form>
+            {% else %}
+            <!-- 참여 버튼 -->
+            <form action="/posts/{{ post.id }}/participate" method="POST">
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                참여하기
+                </button>
+            </form>
+            {% endif %}
+        {% endif %}
+        {% if is_author %}
+            <form action="/posts/{{ post.id }}/delete" method="POST" onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    글 삭제하기
+                </button>
+            </form>
         {% endif %}
     </div>
 </div>
 
 <script>
-    async function cancelParticipation(event) {
-        event.preventDefault();
+  function cancelParticipation(event, postId) {
+    event.preventDefault(); // 기본 폼 제출 막기
 
-        const form = event.target.closest("form");
-        fetch(form.action, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams(new FormData(form))
-        }).then(response => {
-            if (response.redirected) {
-                window.location.href = response.url;
-            } else {
-                location.reload();
-            }
-        });
-
-        return false;
-    }
+    fetch(`/posts/${postId}/participate`, {
+      method: "DELETE"
+    })
+    .then(res => {
+      if (res.redirected) {
+        window.location.href = res.url;
+      } else {
+        location.reload(); // 실패해도 새로고침
+      }
+    });
+  }
 </script>
 {% endblock %}

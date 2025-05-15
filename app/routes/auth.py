@@ -24,6 +24,14 @@ def login():
 # 사용자를 슬랙 로그인 페이지로 리디렉션, 슬랙 로그인 후 권한 요청(scope=identity.*)
 
 
+@auth_bp.route("/logout")
+def logout():
+    session.clear()
+    return redirect(
+        url_for("main.index", msg="로그아웃되었습니다.")
+    )  # 홈 화면으로 이동
+
+
 @auth_bp.route("/slack/callback")
 def callback():
     code = request.args.get("code")
@@ -46,7 +54,7 @@ def callback():
 
     # 🔽 사용자 이름을 Slack users.identity API로 요청
     user_info_res = requests.get(
-        "https://slack.com/api/users.email",
+        "https://slack.com/api/users.identity",
         headers={"Authorization": f"Bearer {access_token}"},
     ).json()
 

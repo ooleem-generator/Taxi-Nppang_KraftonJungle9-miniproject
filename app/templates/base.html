@@ -16,8 +16,8 @@
       </h1>
       <nav class="text-sm space-x-4">
         {% if session.get("user") %}
-            <span class="text-gray-600">{{ session.user.userName }}</span>
-            <a href="/logout" class="text-red-600 hover:underline">로그아웃</a>
+            <span class="text-gray-600 font-bold">{{ session["user"]["name"] }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="text-red-600 hover:underline">로그아웃</a>
         {% else %}
             <a href="/login" class="text-blue-700 hover:underline">로그인</a>
         {% endif %}

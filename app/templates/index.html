@@ -28,7 +28,7 @@
   {% if ride_posts %}
     <div class="space-y-4">
       {% for post in ride_posts %}
-        <a href="/posts/{{ post._id }}" class="block hover:shadow-lg transition rounded">
+        <a href="/posts/{{ post.id }}" class="block hover:shadow-lg transition rounded">
             <div class="bg-white p-4 rounded shadow flex justify-between items-center">
                 <div class="flex-1 pr-4">
                     <div class="text-xs text-gray-400 mb-1">등록일: {{ post.formatted_created }}</div>
