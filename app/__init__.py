@@ -4,13 +4,15 @@ from flask import Flask
 from flask_pymongo import PyMongo
 from flask_session import Session
 from dotenv import load_dotenv
+
+load_dotenv()
+from app.scheduler import start_scheduler
 import os
 
 mongo = PyMongo()  # MongoDB 연결 초기화
 
 
 def create_app():
-    load_dotenv()
 
     app = Flask(__name__)
     app.config.from_object("app.config.Config")  # config.py 설정을 불러와 Flask에 적용
@@ -25,5 +27,7 @@ def create_app():
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
+
+    start_scheduler()
 
     return app

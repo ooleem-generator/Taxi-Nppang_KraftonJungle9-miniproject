@@ -283,6 +283,21 @@ def delete_post(post_id):
     if post.get("authorId") != user_id:
         return "삭제 권한이 없습니다.", 403
 
+    # 🔽 참여자 조회
+    participants_cursor = participation_collection.find(
+        {"postId": ObjectId(post_id), "status": "ACTIVE"}
+    )
+
+    # 🔽 삭제 전에 참여자들에게 알림
+    for participant in participants_cursor:
+        participant_user = mongo.db.users.find_one({"slack_id": participant["userId"]})
+        if participant_user and "access_token" in participant_user:
+            try:
+                message = f"🚫 참여하신 모집글이 삭제되었습니다.\n출발지: {post['departure']} → 도착지: {post['destination']}\n출발 시간: {post['departureTime'].strftime('%H:%M')}"
+                send_dm(participant["userId"], message)
+            except Exception as e:
+                print(f"❗ DM 전송 실패: {participant['userId']} - {e}")
+
     # 게시글 삭제
     ridepost_collection.delete_one({"_id": ObjectId(post_id)})
 
